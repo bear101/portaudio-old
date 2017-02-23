@@ -1,5 +1,5 @@
 /*
-* $Id$
+* $Id: pa_win_wdmks.c 1945 2015-01-21 06:24:32Z rbencina $
 * PortAudio Windows WDM-KS interface
 *
 * Author: Andrew Baldwin, Robert Bielik (WaveRT)
@@ -318,7 +318,7 @@ struct __PaWinWdmFilter
 typedef struct __PaWinWdmDeviceInfo
 {
     PaDeviceInfo    inheritedDeviceInfo;
-    char            compositeName[MAX_PATH];   /* Composite name consists of pin name + device name in utf8 */
+    wchar_t            compositeName[MAX_PATH];   /* Composite name consists of pin name + device name in utf8 */
     PaWinWdmFilter* filter;
     unsigned long   pin;
     int             muxPosition;    /* Used only for input devices */
@@ -633,7 +633,7 @@ static BOOL IsDeviceTheSame(const PaWinWdmDeviceInfo* pDev1,
     if (pDev1 == pDev2)
         return TRUE;
 
-    if (strcmp(pDev1->compositeName, pDev2->compositeName) == 0)
+    if ( _tcscmp(pDev1->compositeName, pDev2->compositeName) == 0)
         return TRUE;
 
     return FALSE;
@@ -1325,7 +1325,8 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
     int defaultSampleRateIndex = defaultSampleRateSearchOrderCount;
 
     PA_LOGE_;
-    PA_DEBUG(("PinNew: Creating pin %d:\n",pinId));
+
+    PA_DEBUG((_T("PinNew: Creating pin %d:\n"),pinId));
 
     /* Allocate the new PIN object */
     pin = (PaWinWdmPin*)PaUtil_AllocateMemory( sizeof(PaWinWdmPin) );
@@ -1387,7 +1388,7 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
         (pin->communication != KSPIN_COMMUNICATION_SINK) &&
         (pin->communication != KSPIN_COMMUNICATION_BOTH) )
     {
-        PA_DEBUG(("PinNew: Not source/sink\n"));
+        PA_DEBUG((_T("PinNew: Not source/sink\n")));
         result = paInvalidDevice;
         goto error;
     }
@@ -1431,7 +1432,7 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
 
     if( result != paNoError )
     {
-        PA_DEBUG(("PinNew: No %s streaming\n", streamingId==KSINTERFACE_STANDARD_LOOPED_STREAMING?"looped":"standard"));
+        PA_DEBUG((_T("PinNew: No %s streaming\n"), streamingId==KSINTERFACE_STANDARD_LOOPED_STREAMING?_T("looped"):_T("standard")));
         goto error;
     }
 
@@ -1465,7 +1466,7 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
 
     if( result != paNoError )
     {
-        PA_DEBUG(("No standard devio\n"));
+        PA_DEBUG((_T("No standard devio\n")));
         goto error;
     }
     /* Don't need mediums any more */
@@ -1494,7 +1495,7 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
     PA_DEBUG(("PinNew: Checking %u no of dataranges...\n", pin->dataRangesItem->Count));
     for( i = 0; i < pin->dataRangesItem->Count; i++)
     {
-        PA_DEBUG(("PinNew: DR major format %x\n",*(unsigned long*)(&(dataRange->MajorFormat))));
+        PA_DEBUG((_T("PinNew: DR major format %x\n"),*(unsigned long*)(&(dataRange->MajorFormat))));
         /* Check that subformat is WAVEFORMATEX, PCM or WILDCARD */
         if( IS_VALID_WAVEFORMATEX_GUID(&dataRange->SubFormat) ||
             IsEqualGUID(&dataRange->SubFormat, &KSDATAFORMAT_SUBTYPE_PCM) ||
@@ -1524,24 +1525,24 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
             if( IsBitsWithinRange((KSDATARANGE_AUDIO*)dataRange, 16) )
             {
                 pin->formats |= paInt16;
-                PA_DEBUG(("PinNew: Format PCM 16 bit supported\n"));
+                PA_DEBUG((_T("PinNew: Format PCM 16 bit supported\n")));
             }
             if( IsBitsWithinRange((KSDATARANGE_AUDIO*)dataRange, 24) )
             {
                 pin->formats |= paInt24;
-                PA_DEBUG(("PinNew: Format PCM 24 bit supported\n"));
+                PA_DEBUG((_T("PinNew: Format PCM 24 bit supported\n")));
             }
             if( IsBitsWithinRange((KSDATARANGE_AUDIO*)dataRange, 32) )
             {
                 if (IsEqualGUID(&dataRange->SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
                 {
                     pin->formats |= paFloat32;
-                    PA_DEBUG(("PinNew: Format IEEE float 32 bit supported\n"));
+                    PA_DEBUG((_T("PinNew: Format IEEE float 32 bit supported\n")));
                 }
                 else
                 {
                     pin->formats |= paInt32;
-                    PA_DEBUG(("PinNew: Format PCM 32 bit supported\n"));
+                    PA_DEBUG((_T("PinNew: Format PCM 32 bit supported\n")));
                 }
             }
 
@@ -1994,7 +1995,7 @@ static PaWinWdmPin* PinNew(PaWinWdmFilter* parentFilter, unsigned long pinId, Pa
 
     /* Success */
     *error = paNoError;
-    PA_DEBUG(("Pin created successfully\n"));
+    PA_DEBUG((_T("Pin created successfully\n")));
     PA_LOGL_;
     return pin;
 
@@ -2056,7 +2057,7 @@ static void PinClose(PaWinWdmPin* pin)
     PA_LOGE_;
     if( pin == NULL )
     {
-        PA_DEBUG(("Closing NULL pin!"));
+        PA_DEBUG((_T("Closing NULL pin!")));
         PA_LOGL_;
         return;
     }
@@ -2118,7 +2119,7 @@ static PaError PinInstantiate(PaWinWdmPin* pin)
         &pin->handle
         );
 
-    PA_DEBUG(("Pin create result = 0x%08x\n",createResult));
+    PA_DEBUG((_T("Pin create result = 0x%08x\n"),createResult));
     if( createResult != ERROR_SUCCESS )
     {
         FilterRelease(pin->parentFilter);
@@ -3090,7 +3091,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
         *pResult = paUnanticipatedHostError;
         return NULL;
     }
-    PA_DEBUG(("Setup called\n"));
+    PA_DEBUG((_T("Setup called\n")));
 
     /* First let's count the number of devices so we can allocate a list */
     invalidDevices = 0;
@@ -3101,24 +3102,24 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
         aliasData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
         aliasData.Reserved = 0;
         noError = SetupDiEnumDeviceInterfaces(handle,NULL,category,device,&interfaceData);
-        PA_DEBUG(("Enum called\n"));
+        PA_DEBUG((_T("Enum called\n")));
         if( !noError )
             break; /* No more devices */
 
         /* Check this one has the render or capture alias */
         aliasFlags = 0;
         noError = SetupDiGetDeviceInterfaceAlias(handle,&interfaceData,alias_render,&aliasData);
-        PA_DEBUG(("noError = %d\n",noError));
+        PA_DEBUG((_T("noError = %d\n"),noError));
         if(noError)
         {
             if(aliasData.Flags && (!(aliasData.Flags & SPINT_REMOVED)))
             {
-                PA_DEBUG(("Device %d has render alias\n",device));
+                PA_DEBUG((_T("Device %d has render alias\n"),device));
                 aliasFlags |= Alias_kRender; /* Has render alias */
             }
             else
             {
-                PA_DEBUG(("Device %d has no render alias\n",device));
+                PA_DEBUG((_T("Device %d has no render alias\n"),device));
             }
         }
         noError = SetupDiGetDeviceInterfaceAlias(handle,&interfaceData,alias_capture,&aliasData);
@@ -3126,12 +3127,12 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
         {
             if(aliasData.Flags && (!(aliasData.Flags & SPINT_REMOVED)))
             {
-                PA_DEBUG(("Device %d has capture alias\n",device));
+                PA_DEBUG((_T("Device %d has capture alias\n"),device));
                 aliasFlags |= Alias_kCapture; /* Has capture alias */
             }
             else
             {
-                PA_DEBUG(("Device %d has no capture alias\n",device));
+                PA_DEBUG((_T("Device %d has no capture alias\n"),device));
             }
         }
         if(!aliasFlags)
@@ -3140,7 +3141,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
     /* Remember how many there are */
     filterCount = device-invalidDevices;
 
-    PA_DEBUG(("Interfaces found: %d\n",device-invalidDevices));
+    PA_DEBUG((_T("Interfaces found: %d\n"),device-invalidDevices));
 
     /* Now allocate the list of pointers to devices */
     ppFilters  = (PaWinWdmFilter**)PaUtil_AllocateMemory( sizeof(PaWinWdmFilter*) * filterCount);
@@ -3175,7 +3176,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
         {
             if(aliasData.Flags && (!(aliasData.Flags & SPINT_REMOVED)))
             {
-                PA_DEBUG(("Device %d has render alias\n",device));
+                PA_DEBUG((_T("Device %d has render alias\n"),device));
                 aliasFlags |= Alias_kRender; /* Has render alias */
             }
         }
@@ -3184,7 +3185,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
         {
             if(aliasData.Flags && (!(aliasData.Flags & SPINT_REMOVED)))
             {
-                PA_DEBUG(("Device %d has capture alias\n",device));
+                PA_DEBUG((_T("Device %d has capture alias\n"),device));
                 aliasFlags |= Alias_kCapture; /* Has capture alias */
             }
         }
@@ -3279,7 +3280,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
 
                 noOfPaDevices += filterIOs;
 
-                PA_DEBUG(("Filter (%s) created with %d valid pins (total I/Os: %u)\n", ((newFilter->devInfo.streamingType==Type_kWaveRT)?"WaveRT":"WaveCyclic"), newFilter->validPinCount, filterIOs));
+                PA_DEBUG((_T("Filter (%s) created with %d valid pins (total I/Os: %u)\n"), ((newFilter->devInfo.streamingType==Type_kWaveRT)?_T("WaveRT"):_T("WaveCyclic")), newFilter->validPinCount, filterIOs));
 
                 assert(slot < filterCount);
 
@@ -3289,7 +3290,7 @@ PaWinWdmFilter** BuildFilterList( int* pFilterCount, int* pNoOfPaDevices, PaErro
             }
             else
             {
-                PA_DEBUG(("Filter NOT created\n"));
+                PA_DEBUG((_T("Filter NOT created\n")));
                 /* As there are now less filters than we initially thought
                 * we must reduce the count by one */
                 filterCount--;
@@ -3596,7 +3597,8 @@ static PaError ScanDeviceInfos( struct PaUtilHostApiRepresentation *hostApi, PaH
                     }
 
                     /* Convert wide char string to utf-8 */
-                    WideCharToMultiByte(CP_UTF8, 0, localCompositeName, -1, wdmDeviceInfo->compositeName, MAX_PATH, NULL, NULL);
+                    //WideCharToMultiByte(CP_UTF8, 0, localCompositeName, -1, wdmDeviceInfo->compositeName, MAX_PATH, NULL, NULL);
+                    _tcsncpy(wdmDeviceInfo->compositeName, localCompositeName, MAX_PATH);
 
                     /* NB! WDM/KS has no concept of a full-duplex device, each pin is either an input or an output */
                     if (isInput)
@@ -3834,7 +3836,7 @@ PaError PaWinWdm_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiInd
     *hostApi = &wdmHostApi->inheritedHostApiRep;
     (*hostApi)->info.structVersion = 1;
     (*hostApi)->info.type = paWDMKS;
-    (*hostApi)->info.name = "Windows WDM-KS";
+    (*hostApi)->info.name = _T("Windows WDM-KS");
 
     /* these are all updated by CommitDeviceInfos() */
     (*hostApi)->info.deviceCount = 0;
@@ -4332,8 +4334,8 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     WAVEFORMATEXTENSIBLE wfx;
 
     PA_LOGE_;
-    PA_DEBUG(("OpenStream:sampleRate = %f\n",sampleRate));
-    PA_DEBUG(("OpenStream:framesPerBuffer = %lu\n",framesPerUserBuffer));
+    PA_DEBUG((_T("OpenStream:sampleRate = %f\n"),sampleRate));
+    PA_DEBUG((_T("OpenStream:framesPerBuffer = %lu\n"),framesPerUserBuffer));
 
     if( inputParameters )
     {
@@ -4583,7 +4585,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
 
         stream->capture.bytesPerSample = stream->capture.bytesPerFrame / stream->deviceInputChannels;
         stream->capture.pPin->frameSize /= stream->capture.bytesPerFrame;
-        PA_DEBUG(("Capture pin frames: %d\n",stream->capture.pPin->frameSize));
+        PA_DEBUG((_T("Capture pin frames: %d\n"),stream->capture.pPin->frameSize));
     }
     else
     {
@@ -4707,7 +4709,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
 
         stream->render.bytesPerSample = stream->render.bytesPerFrame / stream->deviceOutputChannels;
         stream->render.pPin->frameSize /= stream->render.bytesPerFrame;
-        PA_DEBUG(("Render pin frames: %d\n",stream->render.pPin->frameSize));
+        PA_DEBUG((_T("Render pin frames: %d\n"),stream->render.pPin->frameSize));
     }
     else
     {
@@ -4729,7 +4731,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         {
             stream->capture.framesPerBuffer = stream->capture.pPin->frameSize;
         }
-        PA_DEBUG(("Input frames chosen:%ld\n",stream->capture.framesPerBuffer));
+        PA_DEBUG((_T("Input frames chosen:%ld\n"),stream->capture.framesPerBuffer));
 
         /* Setup number of packets to use */
         stream->capture.noOfPackets = 2;
@@ -4758,7 +4760,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         {
             stream->render.framesPerBuffer = stream->render.pPin->frameSize;
         }
-        PA_DEBUG(("Output frames chosen:%ld\n",stream->render.framesPerBuffer));
+        PA_DEBUG((_T("Output frames chosen:%ld\n"),stream->render.framesPerBuffer));
 
         /* Setup number of packets to use */
         stream->render.noOfPackets = 2;
@@ -4985,8 +4987,8 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
 
     stream->streamRepresentation.streamInfo.sampleRate = sampleRate;
 
-    PA_DEBUG(("BytesPerInputFrame = %d\n",stream->capture.bytesPerFrame));
-    PA_DEBUG(("BytesPerOutputFrame = %d\n",stream->render.bytesPerFrame));
+    PA_DEBUG((_T("BytesPerInputFrame = %d\n"),stream->capture.bytesPerFrame));
+    PA_DEBUG((_T("BytesPerOutputFrame = %d\n"),stream->render.bytesPerFrame));
 
     /* memset(stream->hostBuffer,0,size); */
 
@@ -6144,13 +6146,13 @@ PA_THREAD_FUNC ProcessingThread(void* pParam)
         }
     }
 
-    PA_DEBUG(("Finished processing loop\n"));
+    PA_DEBUG((_T("Finished processing loop\n")));
 
     info.stream->threadResult = result;
     goto bailout;
 
 error:
-    PA_DEBUG(("Error starting processing thread\n"));
+    PA_DEBUG((_T("Error starting processing thread\n")));
     /* Set the "error" event together with result */
     info.stream->threadResult = result;
     SetEvent(info.stream->eventStreamStart[StreamStart_kFailed]);
@@ -6158,7 +6160,7 @@ error:
 bailout:
     if (hTimer)
     {
-        PA_DEBUG(("Waitable timer stopped\n", timerPeriod));
+        PA_DEBUG((_T("Waitable timer stopped\n"), timerPeriod));
         CancelWaitableTimer(hTimer);
         CloseHandle(hTimer);
         hTimer = 0;

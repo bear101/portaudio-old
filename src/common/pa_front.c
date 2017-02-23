@@ -123,11 +123,11 @@ const char* Pa_GetVersionText( void )
 }
 
 static PaVersionInfo versionInfo_ = {
-    .versionMajor = paVersionMajor,
-    .versionMinor = paVersionMinor,
-    .versionSubMinor = paVersionSubMinor,
-    .versionControlRevision = TOSTRING(PA_SVN_REVISION),
-    .versionText = PA_VERSION_TEXT_
+    /*.versionMajor = */ paVersionMajor,
+    /*.versionMinor =*/ paVersionMinor,
+    /*.versionSubMinor =*/ paVersionSubMinor,
+    /*.versionControlRevision =*/ TOSTRING(PA_SVN_REVISION),
+    /*.versionText =*/ PA_VERSION_TEXT_
 };
 
 const PaVersionInfo* Pa_GetVersionInfo()
@@ -178,7 +178,7 @@ static int CountHostApiInitializers( void )
 static void TerminateHostApis( void )
 {
     /* terminate in reverse order from initialization */
-    PA_DEBUG(("TerminateHostApis in \n"));
+    PA_DEBUG((_T("TerminateHostApis in \n")));
 
     while( hostApisCount_ > 0 )
     {
@@ -193,7 +193,7 @@ static void TerminateHostApis( void )
         PaUtil_FreeMemory( hostApis_ );
     hostApis_ = 0;
 
-    PA_DEBUG(("TerminateHostApis out\n"));
+    PA_DEBUG((_T("TerminateHostApis out\n")));
 }
 
 
@@ -221,13 +221,13 @@ static PaError InitializeHostApis( void )
     {
         hostApis_[hostApisCount_] = NULL;
 
-        PA_DEBUG(( "before paHostApiInitializers[%d].\n",i));
+        PA_DEBUG(( _T("before paHostApiInitializers[%d].\n"),i));
 
         result = paHostApiInitializers[i]( &hostApis_[hostApisCount_], hostApisCount_ );
         if( result != paNoError )
             goto error;
 
-        PA_DEBUG(( "after paHostApiInitializers[%d].\n",i));
+        PA_DEBUG(( _T("after paHostApiInitializers[%d].\n"),i));
 
         if( hostApis_[hostApisCount_] )
         {

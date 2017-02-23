@@ -64,6 +64,7 @@
 #define DIRECTSOUND_VERSION 0x0300
 #endif
 #include <dsound.h>
+#include <dsconf.h> //added by bdr
 
 #ifdef __cplusplus
 extern "C"
@@ -92,6 +93,10 @@ typedef struct
                 LPDIRECTSOUNDBUFFER8 *, LPUNKNOWN );
 #endif
 }PaWinDsDSoundEntryPoints;
+
+//added by bdr
+int GetDSoundDeviceWaveDeviceID(const GUID* dsguid, int capture);
+//end bdr
 
 extern PaWinDsDSoundEntryPoints paWinDsDSoundEntryPoints;
 

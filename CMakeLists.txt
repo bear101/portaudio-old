@@ -94,6 +94,7 @@ ENDIF(PA_USE_DIRECTSOUNDFULLDUPLEXCREATE)
 #######################################
 IF(WIN32)
 INCLUDE_DIRECTORIES(src/os/win)
+ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
 ENDIF(WIN32)
 
 IF(PA_USE_ASIO)
@@ -136,6 +137,7 @@ SET(PA_DS_INCLUDES
 SET(PA_DS_SOURCES
   src/hostapi/dsound/pa_win_ds.c
   src/hostapi/dsound/pa_win_ds_dynlink.c
+  src/hostapi/dsound/px_win_ds.cpp
 )
 
 SOURCE_GROUP("hostapi\\dsound" FILES
@@ -330,10 +332,20 @@ IF(PA_USE_WDMKS)
 TARGET_LINK_LIBRARIES(portaudio setupapi)
 ENDIF(PA_USE_WDMKS)
 
-SET_TARGET_PROPERTIES(portaudio PROPERTIES OUTPUT_NAME portaudio_${TARGET_POSTFIX}
-                                FOLDER "Portaudio")
-SET_TARGET_PROPERTIES(portaudio_static PROPERTIES OUTPUT_NAME portaudio_static_${TARGET_POSTFIX}
-                                FOLDER "Portaudio")
+SET_TARGET_PROPERTIES(portaudio PROPERTIES OUTPUT_NAME portaudio_${TARGET_POSTFIX})
+SET_TARGET_PROPERTIES(portaudio_static PROPERTIES ARCHIVE_OUTPUT_NAME pastatic
+                                       DEBUG_POSTFIX d ARCHIVE_OUTPUT_DIRECTORY_DEBUG ../lib/$(PlatformName)
+                                       ARCHIVE_OUTPUT_DIRECTORY_RELEASE ../lib/$(PlatformName)
+                                       FOLDER "Portaudio")
+
+#SET_TARGET_PROPERTIES(portaudio_static PROPERTIES OUTPUT_NAME_DEBUG ../lib/$(PlatforName)/pastaticd.lib)
+#SET_TARGET_PROPERTIES(portaudio_static PROPERTIES OUTPUT_NAME_RELEASE ../lib/$(PlatforName)/pastatic.lib)
+
+#SET_TARGET_PROPERTIES(portaudio PROPERTIES OUTPUT_NAME portaudio_${TARGET_POSTFIX}
+#                                FOLDER "Portaudio")
+#SET_TARGET_PROPERTIES(portaudio_static PROPERTIES OUTPUT_NAME portaudio_static_${TARGET_POSTFIX}
+#                                FOLDER "Portaudio")
+
 ENDIF(WIN32)
 
 OPTION(PA_BUILD_TESTS "Include test projects" OFF)

@@ -39,6 +39,7 @@
  @ingroup common_src
 */
 
+#include <portaudio.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -47,7 +48,7 @@ extern "C"
 
 
 
-void PaUtil_DebugPrint( const char *format, ... );
+void PaUtil_DebugPrint( const TCHAR *format, ... );
 
 
 /*
@@ -134,7 +135,7 @@ void PaUtil_DebugPrint( const char *format, ... );
 #endif
 
     
-typedef void (*PaUtilLogCallback ) (const char *log);
+typedef void (*PaUtilLogCallback ) (const TCHAR *log);
 
 /**
     Install user provided log function
