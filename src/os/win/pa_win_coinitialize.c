@@ -83,7 +83,7 @@ PaError PaWinUtil_CoInitialize( PaHostApiTypeId hostApiType, PaWinUtilComInitial
 #endif
     if( FAILED(hr) && hr != RPC_E_CHANGED_MODE )
     {
-        PA_DEBUG(("CoInitialize(0) failed. hr=%d\n", hr));
+        PA_DEBUG((_T("CoInitialize(0) failed. hr=%d\n"), hr));
 
         if( hr == E_OUTOFMEMORY )
             return paInsufficientMemory;
@@ -127,7 +127,7 @@ void PaWinUtil_CoUninitialize( PaHostApiTypeId hostApiType, PaWinUtilComInitiali
     if( comInitializationResult->state != PAWINUTIL_COM_NOT_INITIALIZED
             && comInitializationResult->state != PAWINUTIL_COM_INITIALIZED ){
     
-        PA_DEBUG(("ERROR: PaWinUtil_CoUninitialize called without calling PaWinUtil_CoInitialize\n"));
+        PA_DEBUG((_T("ERROR: PaWinUtil_CoUninitialize called without calling PaWinUtil_CoInitialize\n")));
     }
 
     if( comInitializationResult->state == PAWINUTIL_COM_INITIALIZED )
@@ -135,7 +135,7 @@ void PaWinUtil_CoUninitialize( PaHostApiTypeId hostApiType, PaWinUtilComInitiali
         DWORD currentThreadId = GetCurrentThreadId();
 		if( comInitializationResult->initializingThreadId != currentThreadId )
 		{
-			PA_DEBUG(("ERROR: failed PaWinUtil_CoUninitialize calling thread[%d] does not match initializing thread[%d]\n",
+			PA_DEBUG((_T("ERROR: failed PaWinUtil_CoUninitialize calling thread[%d] does not match initializing thread[%d]\n"),
 				currentThreadId, comInitializationResult->initializingThreadId));
 		}
 		else

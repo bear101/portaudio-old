@@ -190,7 +190,7 @@ void PaWinDs_InitializeDSoundEntryPoints(void)
     else
     {
         DWORD errorCode = GetLastError(); // 126 (0x7E) == ERROR_MOD_NOT_FOUND
-        PA_DEBUG(("Couldn't load dsound.dll error code: %d \n",errorCode));
+        PA_DEBUG((_T("Couldn't load dsound.dll error code: %d \n"),errorCode));
 
         /* initialize with dummy entry points to make live easy when ds isn't present */
         paWinDsDSoundEntryPoints.DirectSoundCreate = DummyDirectSoundCreate;
