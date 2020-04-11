@@ -85,7 +85,7 @@ void PaUtil_SetDebugPrintFunction(PaUtilLogCallback cb)
 
 #define PA_LOG_BUF_SIZE 2048
 
-void PaUtil_DebugPrint( const char *format, ... )
+void PaUtil_DebugPrint( const TCHAR *format, ... )
 {
 	// Optional logging into Output console of Visual Studio
 #if defined(_MSC_VER) && defined(PA_ENABLE_MSVC_DEBUG_OUTPUT)
@@ -103,11 +103,11 @@ void PaUtil_DebugPrint( const char *format, ... )
 	// Output to User-Callback
     if (userCB != NULL)
     {
-        char strdump[PA_LOG_BUF_SIZE];
+        TCHAR strdump[PA_LOG_BUF_SIZE];
         va_list ap;
         va_start(ap, format);
-        VSNPRINTF(strdump, sizeof(strdump), format, ap);
-        strdump[sizeof(strdump)-1] = 0;
+        _vsntprintf(strdump, PA_LOG_BUF_SIZE, format, ap);
+        strdump[PA_LOG_BUF_SIZE-1] = 0;
         userCB(strdump);
         va_end(ap);
     }
@@ -116,7 +116,7 @@ void PaUtil_DebugPrint( const char *format, ... )
     {
         va_list ap;
         va_start(ap, format);
-        vfprintf(stderr, format, ap);
+        _vftprintf(stderr, format, ap);
         va_end(ap);
         fflush(stderr);
     }

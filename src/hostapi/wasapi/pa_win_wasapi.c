@@ -385,7 +385,7 @@ FAvSetMmThreadPriority           pAvSetMmThreadPriority = NULL;
 #define _GetProc(fun, type, name)  {                                                        \
                                         fun = (type) GetProcAddress(hDInputDLL,name);       \
                                         if (fun == NULL) {                                  \
-                                            PRINT(("GetProcAddr failed for %s" ,name));     \
+                                            PRINT((_T("GetProcAddr failed for %s"), _T( name ))); \
                                             return FALSE;                                   \
                                         }                                                   \
                                     }                                                       \
@@ -758,7 +758,7 @@ static HRESULT __LogHostError(HRESULT res, const char *func, const char *file, i
     default:
         text = "UNKNOWN ERROR";
     }
-    PRINT(("WASAPI ERROR HRESULT: 0x%X : %s\n [FUNCTION: %s FILE: %s {LINE: %d}]\n", res, text, func, file, line));
+    PRINT((_T("WASAPI ERROR HRESULT: 0x%X : %s\n [FUNCTION: %s FILE: %s {LINE: %d}]\n"), res, text, func, file, line));
 #ifndef PA_ENABLE_DEBUG_OUTPUT
     (void)func; (void)file; (void)line;
 #endif
@@ -767,13 +767,13 @@ static HRESULT __LogHostError(HRESULT res, const char *func, const char *file, i
 }
 
 // ------------------------------------------------------------------------------------------
-#define LogPaError(PAERR) __LogPaError(PAERR, __FUNCTION__, __FILE__, __LINE__)
-static PaError __LogPaError(PaError err, const char *func, const char *file, int line)
+#define LogPaError(PAERR) __LogPaError(PAERR, _T( __FUNCTION__ ), _T( __FILE__ ), __LINE__ )
+static PaError __LogPaError(PaError err, const TCHAR *func, const TCHAR *file, int line)
 {
     if (err == paNoError)
         return err;
 
-    PRINT(("WASAPI ERROR PAERROR: %i : %s\n [FUNCTION: %s FILE: %s {LINE: %d}]\n", err, Pa_GetErrorText(err), func, file, line));
+    PRINT((_T("WASAPI ERROR PAERROR: %i : %s\n [FUNCTION: %s FILE: %s {LINE: %d}]\n"), err, Pa_GetErrorText(err), func, file, line));
 #ifndef PA_ENABLE_DEBUG_OUTPUT
     (void)func; (void)file; (void)line;
 #endif
@@ -847,7 +847,7 @@ static BOOL SystemTimer_SetGranularity(SystemTimer *timer, UINT32 granularity)
 
     if (timeBeginPeriod(timer->granularity) != TIMERR_NOERROR)
     {
-        PRINT(("SetSystemTimer: timeBeginPeriod(1) failed!\n"));
+        PRINT((_T("SetSystemTimer: timeBeginPeriod(1) failed!\n")));
 
         timer->granularity = 10;
         return FALSE;
@@ -871,7 +871,7 @@ static void SystemTimer_RestoreGranularity(SystemTimer *timer)
     {
         if (timeEndPeriod(timer->granularity) != TIMERR_NOERROR)
         {
-            PRINT(("RestoreSystemTimer: timeEndPeriod(1) failed!\n"));
+            PRINT((_T("RestoreSystemTimer: timeEndPeriod(1) failed!\n")));
         }
     }
 #else
@@ -1140,7 +1140,7 @@ static BOOL IsWow64()
     // and GetProcAddress to get a pointer to the function if available.
 
     fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
-        GetModuleHandleA("kernel32"), "IsWow64Process");
+        GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
     if (fnIsWow64Process == NULL)
         return FALSE;
@@ -1220,11 +1220,11 @@ static EWindowsVersion GetWindowsVersion()
 
         // RtlGetVersion must be able to provide true Windows version (Windows 10 may be reported as Windows 8
         // by GetVersion API)
-        if ((fnRtlGetVersion = (LPFN_RTLGETVERSION)GetProcAddress(GetModuleHandleA("ntdll"), "RtlGetVersion")) != NULL)
+        if ((fnRtlGetVersion = (LPFN_RTLGETVERSION)GetProcAddress(GetModuleHandle(_T("ntdll")), "RtlGetVersion")) != NULL)
         {
             OSVERSIONINFOW ver = { sizeof(OSVERSIONINFOW), 0, 0, 0, 0, {0} };
 
-            PRINT(("WASAPI: getting Windows version with RtlGetVersion()\n"));
+            PRINT((_T("WASAPI: getting Windows version with RtlGetVersion()\n")));
 
             if (fnRtlGetVersion(&ver) == NTSTATUS_SUCCESS)
             {
@@ -1242,11 +1242,11 @@ static EWindowsVersion GetWindowsVersion()
             typedef DWORD (WINAPI *LPFN_GETVERSION)(VOID);
             LPFN_GETVERSION fnGetVersion;
 
-            if ((fnGetVersion = (LPFN_GETVERSION)GetProcAddress(GetModuleHandleA("kernel32"), "GetVersion")) != NULL)
+            if ((fnGetVersion = (LPFN_GETVERSION)GetProcAddress(GetModuleHandle(_T("kernel32")), "GetVersion")) != NULL)
             {
                 DWORD dwVersion;
 
-                PRINT(("WASAPI: getting Windows version with GetVersion()\n"));
+                PRINT((_T("WASAPI: getting Windows version with GetVersion()\n")));
 
                 dwVersion = fnGetVersion();
 
@@ -1294,7 +1294,7 @@ static EWindowsVersion GetWindowsVersion()
         // fallback to VerifyVersionInfo if RtlGetVersion and GetVersion are missing
         else
         {
-            PRINT(("WASAPI: getting Windows version with VerifyVersionInfo()\n"));
+            PRINT((_T("WASAPI: getting Windows version with VerifyVersionInfo()\n")));
 
             if (IsWindowsVersionOrGreater(10, 0, 0))
                 version = WINDOWS_10_SERVER2016;
@@ -1314,7 +1314,7 @@ static EWindowsVersion GetWindowsVersion()
                 version = WINDOWS_FUTURE;
         }
 
-        PRINT(("WASAPI: Windows version = %d\n", version));
+        PRINT((_T("WASAPI: Windows version = %d\n"), version));
     }
 
     return version;
@@ -1362,7 +1362,7 @@ static const IID *GetAudioClientIID()
         default: cli_iid = &pa_IID_IAudioClient;  break;
         }
 
-        PRINT(("WASAPI: IAudioClient version = %d\n", cli_version));
+        PRINT((_T("WASAPI: IAudioClient version = %d\n"), cli_version));
     }
 
     return cli_iid;
@@ -1767,12 +1767,12 @@ static HRESULT ActivateAudioInterface(const PaWasapiDeviceInfo *deviceInfo, cons
 
         if (FAILED(hr = IAudioClient2_SetClientProperties((IAudioClient2 *)(*client), (AudioClientProperties *)&audioProps)))
         {
-            PRINT(("WASAPI: IAudioClient2_SetClientProperties(IsOffload = %d, Category = %d, Options = %d) failed\n", audioProps.bIsOffload, audioProps.eCategory, audioProps.Options));
+            PRINT((_T("WASAPI: IAudioClient2_SetClientProperties(IsOffload = %d, Category = %d, Options = %d) failed\n"), audioProps.bIsOffload, audioProps.eCategory, audioProps.Options));
             LogHostError(hr);
         }
         else
         {
-            PRINT(("WASAPI: IAudioClient2 set properties: IsOffload = %d, Category = %d, Options = %d\n", audioProps.bIsOffload, audioProps.eCategory, audioProps.Options));
+            PRINT((_T("WASAPI: IAudioClient2 set properties: IsOffload = %d, Category = %d, Options = %d\n"), audioProps.bIsOffload, audioProps.eCategory, audioProps.Options));
         }
     }
 #endif
@@ -1815,11 +1815,11 @@ static void FillBaseDeviceInfo(PaDeviceInfo *deviceInfo, PaHostApiIndex hostApiI
 static PaError FillInactiveDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, PaDeviceInfo *deviceInfo)
 {
     if (deviceInfo->name == NULL)
-        deviceInfo->name = (char *)PaUtil_GroupAllocateMemory(paWasapi->allocations, 1);
+        deviceInfo->name = (TCHAR*)PaUtil_GroupAllocateMemory(paWasapi->allocations, 1 * sizeof(TCHAR));
 
     if (deviceInfo->name != NULL)
     {
-        ((char *)deviceInfo->name)[0] = 0;
+        ((TCHAR *)deviceInfo->name)[0] = 0;
     }
     else
         return paInsufficientMemory;
@@ -1857,6 +1857,12 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
         IF_FAILED_INTERNAL_ERROR_JUMP(hr, result, error);
 
         wcsncpy(wasapiDeviceInfo->deviceId, deviceId, PA_WASAPI_DEVICE_ID_LEN - 1);
+
+        {
+            deviceInfo->uniqueID = (TCHAR*)PaUtil_GroupAllocateMemory(paWasapi->allocations, PA_WASAPI_DEVICE_ID_LEN * sizeof(TCHAR) );
+            _tcsncpy(deviceInfo->uniqueID, wasapiDeviceInfo->deviceId, PA_WASAPI_DEVICE_ID_LEN - 1);
+        }
+        
         CoTaskMemFree(deviceId);
     }
 
@@ -1865,7 +1871,7 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
     IF_FAILED_INTERNAL_ERROR_JUMP(hr, result, error);
     if (wasapiDeviceInfo->state != DEVICE_STATE_ACTIVE)
     {
-        PRINT(("WASAPI device: %d is not currently available (state:%d)\n", index, wasapiDeviceInfo->state));
+        PRINT((_T("WASAPI device: %d is not currently available (state:%d)\n"), index, wasapiDeviceInfo->state));
     }
 
     // Get basic device info
@@ -1884,20 +1890,20 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
             hr = IPropertyStore_GetValue(pProperty, &PKEY_Device_FriendlyName, &value);
             IF_FAILED_INTERNAL_ERROR_JUMP(hr, result, error);
 
-            if ((deviceInfo->name = (char *)PaUtil_GroupAllocateMemory(paWasapi->allocations, PA_WASAPI_DEVICE_NAME_LEN)) == NULL)
+            if ((deviceInfo->name = (TCHAR *)PaUtil_GroupAllocateMemory(paWasapi->allocations, PA_WASAPI_DEVICE_NAME_LEN * sizeof(TCHAR))) == NULL)
             {
                 result = paInsufficientMemory;
                 PropVariantClear(&value);
                 goto error;
             }
             if (value.pwszVal)
-                WideCharToMultiByte(CP_UTF8, 0, value.pwszVal, (INT32)wcslen(value.pwszVal), (char *)deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, 0, 0);
+                _tcsncpy(deviceInfo->name, value.pwszVal, PA_WASAPI_DEVICE_NAME_LEN - 1);
             else
-                _snprintf((char *)deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, "baddev%d", index);
+                _sntprintf(deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, _T("baddev%d"), index);
             
             PropVariantClear(&value);
 
-            PA_DEBUG(("WASAPI:%d| name[%s]\n", index, deviceInfo->name));
+            PA_DEBUG((_T("WASAPI:%d| name[%s]\n"), index, deviceInfo->name));
         }
 
         // Default format
@@ -1929,7 +1935,7 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
             wasapiDeviceInfo->formFactor = (EndpointFormFactor)value.uintVal;
         #endif
 
-            PA_DEBUG(("WASAPI:%d| form-factor[%d]\n", index, wasapiDeviceInfo->formFactor));
+            PA_DEBUG((_T("WASAPI:%d| form-factor[%d]\n"), index, wasapiDeviceInfo->formFactor));
 
             PropVariantClear(&value);
         }
@@ -1949,16 +1955,16 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
     wcsncpy(wasapiDeviceInfo->deviceId, listEntry->info->id, PA_WASAPI_DEVICE_ID_LEN - 1);
 
     // Set device name
-    if ((deviceInfo->name = (char *)PaUtil_GroupAllocateMemory(paWasapi->allocations, PA_WASAPI_DEVICE_NAME_LEN)) == NULL)
+    if ((deviceInfo->name = (TCHAR *)PaUtil_GroupAllocateMemory(paWasapi->allocations, PA_WASAPI_DEVICE_NAME_LEN * sizeof(TCHAR))) == NULL)
     {
         result = paInsufficientMemory;
         goto error;
     }
-    ((char *)deviceInfo->name)[0] = 0;
+    ((TCHAR *)deviceInfo->name)[0] = 0;
     if (listEntry->info->name[0] != 0)
-        WideCharToMultiByte(CP_UTF8, 0, listEntry->info->name, (INT32)wcslen(listEntry->info->name), (char *)deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, 0, 0);
-    if (deviceInfo->name[0] == 0) // fallback if WideCharToMultiByte is failed, or listEntry is nameless
-        _snprintf((char *)deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, "WASAPI_%s:%d", (listEntry->flow == eRender ? "Output" : "Input"), index);
+        _tcsncpy(deviceInfo->name, listEntry->info->name, PA_WASAPI_DEVICE_NAME_LEN - 1);
+    if (deviceInfo->name[0] == 0)
+        _sntprintf(deviceInfo->name, PA_WASAPI_DEVICE_NAME_LEN - 1, _T("WASAPI_%s:%d"), (listEntry->flow == eRender ? _T("Output") : _T("Input")), index);
 
     // Form-factor
     wasapiDeviceInfo->formFactor = listEntry->info->formFactor;
@@ -1985,7 +1991,7 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
         hr = IAudioClient_GetDevicePeriod(tmpClient, &wasapiDeviceInfo->DefaultDevicePeriod, &wasapiDeviceInfo->MinimumDevicePeriod);
         if (FAILED(hr))
         {
-            PA_DEBUG(("WASAPI:%d| failed getting min/default periods by IAudioClient::GetDevicePeriod() with error[%08X], will use 30000/100000 hns\n", index, (UINT32)hr));
+            PA_DEBUG((_T("WASAPI:%d| failed getting min/default periods by IAudioClient::GetDevicePeriod() with error[%08X], will use 30000/100000 hns\n"), index, (UINT32)hr));
 
             // assign WASAPI common values
             wasapiDeviceInfo->DefaultDevicePeriod = 100000;
@@ -2039,18 +2045,18 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
         deviceInfo->maxOutputChannels         = wasapiDeviceInfo->MixFormat.Format.nChannels;
         deviceInfo->defaultHighOutputLatency = nano100ToSeconds(wasapiDeviceInfo->DefaultDevicePeriod);
         deviceInfo->defaultLowOutputLatency  = nano100ToSeconds(wasapiDeviceInfo->MinimumDevicePeriod);
-        PA_DEBUG(("WASAPI:%d| def.SR[%d] max.CH[%d] latency{hi[%f] lo[%f]}\n", index, (UINT32)deviceInfo->defaultSampleRate,
+        PA_DEBUG((_T("WASAPI:%d| def.SR[%d] max.CH[%d] latency{hi[%f] lo[%f]}\n"), index, (UINT32)deviceInfo->defaultSampleRate,
             deviceInfo->maxOutputChannels, (float)deviceInfo->defaultHighOutputLatency, (float)deviceInfo->defaultLowOutputLatency));
         break;}
     case eCapture: {
         deviceInfo->maxInputChannels        = wasapiDeviceInfo->MixFormat.Format.nChannels;
         deviceInfo->defaultHighInputLatency = nano100ToSeconds(wasapiDeviceInfo->DefaultDevicePeriod);
         deviceInfo->defaultLowInputLatency  = nano100ToSeconds(wasapiDeviceInfo->MinimumDevicePeriod);
-        PA_DEBUG(("WASAPI:%d| def.SR[%d] max.CH[%d] latency{hi[%f] lo[%f]}\n", index, (UINT32)deviceInfo->defaultSampleRate,
+        PA_DEBUG((_T("WASAPI:%d| def.SR[%d] max.CH[%d] latency{hi[%f] lo[%f]}\n"), index, (UINT32)deviceInfo->defaultSampleRate,
             deviceInfo->maxInputChannels, (float)deviceInfo->defaultHighInputLatency, (float)deviceInfo->defaultLowInputLatency));
         break; }
     default:
-        PRINT(("WASAPI:%d| bad Data Flow!\n", index));
+        PRINT((_T("WASAPI:%d| bad Data Flow!\n"), index));
         result = paInternalError;
         goto error;
     }
@@ -2058,8 +2064,7 @@ static PaError FillDeviceInfo(PaWasapiHostApiRepresentation *paWasapi, void *pEn
     return paNoError;
 
 error:
-
-    PRINT(("WASAPI: failed filling device info for device index[%d] - error[%d|%s]\n", index, result, Pa_GetErrorText(result)));
+    PRINT((_T("WASAPI: failed filling device info for device index[%d] - error[%d|%s]\n"), index, result, Pa_GetErrorText(result)));
 
     return result;
 }
@@ -2239,8 +2244,8 @@ static PaError CreateDeviceList(PaWasapiHostApiRepresentation *paWasapi, PaHostA
     {
         PaDeviceInfo *deviceInfo = &deviceInfoArray[i];
 
-        PA_DEBUG(("WASAPI: device idx: %02d\n", i));
-        PA_DEBUG(("WASAPI: ---------------\n"));
+        PA_DEBUG((_T("WASAPI: device idx: %02d\n"), i));
+        PA_DEBUG((_T("WASAPI: ---------------\n")));
 
         FillBaseDeviceInfo(deviceInfo, hostApiIndex);
 
@@ -2282,7 +2287,7 @@ static PaError CreateDeviceList(PaWasapiHostApiRepresentation *paWasapi, PaHostA
     // Clear any non-fatal errors
     result = paNoError;
 
-    PRINT(("WASAPI: device list ok - found %d devices\n", paWasapi->deviceCount));
+    PRINT((_T("WASAPI: device list ok - found %d devices\n"), paWasapi->deviceCount));
 
 done:
 
@@ -2301,7 +2306,7 @@ error:
     if (result == paNoError)
         result = paInternalError;
 
-    PRINT(("WASAPI: failed to create device list - error[%d|%s]\n", result, Pa_GetErrorText(result)));
+    PRINT((_T("WASAPI: failed to create device list - error[%d|%s]\n"), result, Pa_GetErrorText(result)));
 
     goto done;
 }
@@ -2315,7 +2320,7 @@ PaError PaWasapi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiInd
 #ifndef PA_WINRT
     if (!SetupAVRT())
     {
-        PRINT(("WASAPI: No AVRT! (not VISTA?)\n"));
+        PRINT((_T("WASAPI: No AVRT! (not VISTA?)\n")));
         return paNoError;
     }
 #endif
@@ -2345,7 +2350,7 @@ PaError PaWasapi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiInd
     *hostApi                             = &paWasapi->inheritedHostApiRep;
     (*hostApi)->info.structVersion         = 1;
     (*hostApi)->info.type                 = paWASAPI;
-    (*hostApi)->info.name                 = "Windows WASAPI";
+    (*hostApi)->info.name                 = _T("Windows WASAPI");
     (*hostApi)->info.deviceCount         = 0;
     (*hostApi)->info.defaultInputDevice     = paNoDevice;
     (*hostApi)->info.defaultOutputDevice = paNoDevice;
@@ -2374,13 +2379,13 @@ PaError PaWasapi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiInd
                                       GetStreamTime, PaUtil_DummyGetCpuLoad,
                                       ReadStream, WriteStream, GetStreamReadAvailable, GetStreamWriteAvailable );
 
-    PRINT(("WASAPI: initialized ok\n"));
+    PRINT((_T("WASAPI: initialized ok\n")));
 
     return paNoError;
 
 error:
 
-    PRINT(("WASAPI: failed %s error[%d|%s]\n", __FUNCTION__, result, Pa_GetErrorText(result)));
+    PRINT((_T("WASAPI: failed %s error[%d|%s]\n"), __FUNCTION__, result, Pa_GetErrorText(result)));
 
     Terminate((PaUtilHostApiRepresentation *)paWasapi);
 
@@ -2636,20 +2641,20 @@ static void LogWAVEFORMATEXTENSIBLE(const WAVEFORMATEXTENSIBLE *in)
     {
     case WAVE_FORMAT_EXTENSIBLE: {
 
-        PRINT(("wFormatTag     =WAVE_FORMAT_EXTENSIBLE\n"));
+        PRINT((_T("wFormatTag     =WAVE_FORMAT_EXTENSIBLE\n")));
 
         if (IsEqualGUID(&in->SubFormat, &pa_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
         {
-            PRINT(("SubFormat      =KSDATAFORMAT_SUBTYPE_IEEE_FLOAT\n"));
+            PRINT((_T("SubFormat      =KSDATAFORMAT_SUBTYPE_IEEE_FLOAT\n")));
         }
         else
         if (IsEqualGUID(&in->SubFormat, &pa_KSDATAFORMAT_SUBTYPE_PCM))
         {
-            PRINT(("SubFormat      =KSDATAFORMAT_SUBTYPE_PCM\n"));
+            PRINT((_T("SubFormat      =KSDATAFORMAT_SUBTYPE_PCM\n")));
         }
         else
         {
-            PRINT(("SubFormat      =CUSTOM GUID{%d:%d:%d:%d%d%d%d%d%d%d%d}\n",
+            PRINT((_T("SubFormat      =CUSTOM GUID{%d:%d:%d:%d%d%d%d%d%d%d%d}\n"),
                                         in->SubFormat.Data1,
                                         in->SubFormat.Data2,
                                         in->SubFormat.Data3,
@@ -2662,23 +2667,23 @@ static void LogWAVEFORMATEXTENSIBLE(const WAVEFORMATEXTENSIBLE *in)
                                         (int)in->SubFormat.Data4[6],
                                         (int)in->SubFormat.Data4[7]));
         }
-        PRINT(("Samples.wValidBitsPerSample =%d\n",  in->Samples.wValidBitsPerSample));
-        PRINT(("dwChannelMask  =0x%X\n",in->dwChannelMask));
+        PRINT((_T("Samples.wValidBitsPerSample =%d\n"),  in->Samples.wValidBitsPerSample));
+        PRINT((_T("dwChannelMask  =0x%X\n"),in->dwChannelMask));
 
         break; }
 
-    case WAVE_FORMAT_PCM:        PRINT(("wFormatTag     =WAVE_FORMAT_PCM\n")); break;
-    case WAVE_FORMAT_IEEE_FLOAT: PRINT(("wFormatTag     =WAVE_FORMAT_IEEE_FLOAT\n")); break;
+    case WAVE_FORMAT_PCM:        PRINT((_T("wFormatTag     =WAVE_FORMAT_PCM\n"))); break;
+    case WAVE_FORMAT_IEEE_FLOAT: PRINT((_T("wFormatTag     =WAVE_FORMAT_IEEE_FLOAT\n"))); break;
     default: 
-        PRINT(("wFormatTag     =UNKNOWN(%d)\n",old->wFormatTag)); break;
+        PRINT((_T("wFormatTag     =UNKNOWN(%d)\n"),old->wFormatTag)); break;
     }
 
-    PRINT(("nChannels      =%d\n",old->nChannels));
-    PRINT(("nSamplesPerSec =%d\n",old->nSamplesPerSec));
-    PRINT(("nAvgBytesPerSec=%d\n",old->nAvgBytesPerSec));
-    PRINT(("nBlockAlign    =%d\n",old->nBlockAlign));
-    PRINT(("wBitsPerSample =%d\n",old->wBitsPerSample));
-    PRINT(("cbSize         =%d\n",old->cbSize));
+    PRINT((_T("nChannels      =%d\n"),old->nChannels));
+    PRINT((_T("nSamplesPerSec =%d\n"),old->nSamplesPerSec));
+    PRINT((_T("nAvgBytesPerSec=%d\n"),old->nAvgBytesPerSec));
+    PRINT((_T("nBlockAlign    =%d\n"),old->nBlockAlign));
+    PRINT((_T("wBitsPerSample =%d\n"),old->wBitsPerSample));
+    PRINT((_T("cbSize         =%d\n"),old->cbSize));
 }
 
 // ------------------------------------------------------------------------------------------
@@ -3313,7 +3318,7 @@ static HRESULT CreateAudioClient(PaWasapiStream *pStream, PaWasapiSubStream *pSu
 
             // Use Polling interface
             pSub->streamFlags &= ~AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
-            PRINT(("WASAPI: CreateAudioClient: forcing POLL mode\n"));
+            PRINT((_T("WASAPI: CreateAudioClient: forcing POLL mode\n")));
         }
     #endif
     }
@@ -3439,7 +3444,7 @@ static HRESULT CreateAudioClient(PaWasapiStream *pStream, PaWasapiSubStream *pSu
         {
             UINT32 ratio = maxBufferFrames / framesPerLatency;
 
-            PRINT(("WASAPI: CreateAudioClient: detected %d times larger buffer than requested, correct to match user latency\n", ratio));
+            PRINT((_T("WASAPI: CreateAudioClient: detected %d times larger buffer than requested, correct to match user latency\n"), ratio));
             
             // Get new aligned frames lowered by calculated ratio
             framesPerLatency = MakeFramesFromHns(pSub->period / ratio, pSub->wavex.Format.nSamplesPerSec);
@@ -3480,7 +3485,7 @@ static HRESULT CreateAudioClient(PaWasapiStream *pStream, PaWasapiSubStream *pSu
     */
     while ((hr == E_OUTOFMEMORY) && (pSub->period > (100 * 10000)))
     {
-        PRINT(("WASAPI: CreateAudioClient: decreasing buffer size to %d milliseconds\n", (pSub->period / 10000)));
+        PRINT((_T("WASAPI: CreateAudioClient: decreasing buffer size to %d milliseconds\n"), (pSub->period / 10000)));
 
         // Decrease by 100ms and try again
         pSub->period -= (100 * 10000);
@@ -3520,7 +3525,7 @@ static HRESULT CreateAudioClient(PaWasapiStream *pStream, PaWasapiSubStream *pSu
         // Use default
         pSub->period = pInfo->DefaultDevicePeriod;
 
-        PRINT(("WASAPI: CreateAudioClient: correcting buffer size/alignment to device default\n"));
+        PRINT((_T("WASAPI: CreateAudioClient: correcting buffer size/alignment to device default\n")));
 
         // Release the previous allocations
         SAFE_RELEASE(audioClient);
@@ -3630,7 +3635,7 @@ static PaError ActivateAudioClientOutput(PaWasapiStream *stream)
     // Append buffer latency to interface latency in shared mode (see GetStreamLatency notes)
     stream->out.latencySeconds = bufferLatency;
 
-    PRINT(("WASAPI::OpenStream(output): framesPerUser[ %d ] framesPerHost[ %d ] latency[ %.02fms ] exclusive[ %s ] wow64_fix[ %s ] mode[ %s ]\n", (UINT32)framesPerBuffer, (UINT32)stream->out.framesPerHostCallback, (float)(stream->out.latencySeconds*1000.0f), (stream->out.shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE ? "YES" : "NO"), (stream->out.params.wow64_workaround ? "YES" : "NO"), (stream->out.streamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK ? "EVENT" : "POLL")));
+    PRINT((_T("WASAPI::OpenStream(output): framesPerUser[ %d ] framesPerHost[ %d ] latency[ %.02fms ] exclusive[ %s ] wow64_fix[ %s ] mode[ %s ]\n"), (UINT32)framesPerBuffer, (UINT32)stream->out.framesPerHostCallback, (float)(stream->out.latencySeconds*1000.0f), (stream->out.shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE ? "YES" : "NO"), (stream->out.params.wow64_workaround ? "YES" : "NO"), (stream->out.streamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK ? "EVENT" : "POLL")));
 
     return paNoError;
 
@@ -3698,7 +3703,7 @@ static PaError ActivateAudioClientInput(PaWasapiStream *stream)
     // Append buffer latency to interface latency in shared mode (see GetStreamLatency notes)
     stream->in.latencySeconds = bufferLatency;
 
-    PRINT(("WASAPI::OpenStream(input): framesPerUser[ %d ] framesPerHost[ %d ] latency[ %.02fms ] exclusive[ %s ] wow64_fix[ %s ] mode[ %s ]\n", (UINT32)framesPerBuffer, (UINT32)stream->in.framesPerHostCallback, (float)(stream->in.latencySeconds*1000.0f), (stream->in.shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE ? "YES" : "NO"), (stream->in.params.wow64_workaround ? "YES" : "NO"), (stream->in.streamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK ? "EVENT" : "POLL")));
+    PRINT((_T("WASAPI::OpenStream(input): framesPerUser[ %d ] framesPerHost[ %d ] latency[ %.02fms ] exclusive[ %s ] wow64_fix[ %s ] mode[ %s ]\n"), (UINT32)framesPerBuffer, (UINT32)stream->in.framesPerHostCallback, (float)(stream->in.latencySeconds*1000.0f), (stream->in.shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE ? "YES" : "NO"), (stream->in.params.wow64_workaround ? "YES" : "NO"), (stream->in.streamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK ? "EVENT" : "POLL")));
 
     return paNoError;
 
@@ -4012,7 +4017,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
 
     // log full-duplex
     if (fullDuplex)
-        PRINT(("WASAPI::OpenStream: full-duplex mode\n"));
+        PRINT((_T("WASAPI::OpenStream: full-duplex mode\n")));
 
     // paWinWasapiPolling must be on/or not on both streams
     if ((inputParameters != NULL) && (outputParameters != NULL))
@@ -4058,7 +4063,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         // normal.
         /*if (stream->in.period != stream->out.period)
         {
-            PRINT(("WASAPI: OpenStream: period discrepancy\n"));
+            PRINT((_T("WASAPI: OpenStream: period discrepancy\n")));
             LogPaError(result = paBadIODeviceCombination);
             goto error;
         }*/
@@ -4068,7 +4073,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         // period only!
         /*if (stream->out.framesPerHostCallback != stream->in.framesPerHostCallback)
         {
-            PRINT(("WASAPI: OpenStream: framesPerHostCallback discrepancy\n"));
+            PRINT((_T("WASAPI: OpenStream: framesPerHostCallback discrepancy\n")));
             goto error;
         }*/
     }
@@ -4413,7 +4418,7 @@ static PaError StartStream( PaStream *s )
         // Marshal WASAPI interface pointers for safe use in thread created below.
         if ((hr = MarshalStreamComPointers(stream)) != S_OK) 
         {
-            PRINT(("Failed marshaling stream COM pointers."));
+            PRINT((_T("Failed marshaling stream COM pointers.")));
             result = paUnanticipatedHostError;
             goto nonblocking_start_error;
         }
@@ -4423,7 +4428,7 @@ static PaError StartStream( PaStream *s )
         {
             if ((stream->hThread = CREATE_THREAD(ProcThreadEvent)) == NULL) 
             {
-                PRINT(("Failed creating thread: ProcThreadEvent."));
+                PRINT((_T("Failed creating thread: ProcThreadEvent.")));
                 result = paUnanticipatedHostError;
                 goto nonblocking_start_error;
             }
@@ -4432,7 +4437,7 @@ static PaError StartStream( PaStream *s )
         {
             if ((stream->hThread = CREATE_THREAD(ProcThreadPoll)) == NULL) 
             {
-                PRINT(("Failed creating thread: ProcThreadPoll."));
+                PRINT((_T("Failed creating thread: ProcThreadPoll.")));
                 result = paUnanticipatedHostError;
                 goto nonblocking_start_error;
             }
@@ -4441,7 +4446,7 @@ static PaError StartStream( PaStream *s )
         // Wait for thread to start
         if (WaitForSingleObject(stream->hThreadStart, 60*1000) == WAIT_TIMEOUT) 
         {
-            PRINT(("Failed starting thread: timeout."));
+            PRINT((_T("Failed starting thread: timeout.")));
             result = paUnanticipatedHostError;
             goto nonblocking_start_error;
         }
@@ -5078,21 +5083,21 @@ static PaError MMCSS_activate(PaWasapiThreadPriority nPriorityClass, HANDLE *ret
     
     if ((hTask = pAvSetMmThreadCharacteristics(mmcs_name[nPriorityClass], &task_idx)) == NULL)
     {
-        PRINT(("WASAPI: AvSetMmThreadCharacteristics failed: error[%d]\n", GetLastError()));
+        PRINT((_T("WASAPI: AvSetMmThreadCharacteristics failed: error[%d]\n"), GetLastError()));
         return paUnanticipatedHostError;
     }
 
     /*BOOL priority_ok = pAvSetMmThreadPriority(hTask, AVRT_PRIORITY_NORMAL);
     if (priority_ok == FALSE)
     {
-        PRINT(("WASAPI: AvSetMmThreadPriority failed!\n"));
+        PRINT((_T("WASAPI: AvSetMmThreadPriority failed!\n")));
     }*/
 
     // debug
     {
         int    cur_priority          = GetThreadPriority(GetCurrentThread());
         DWORD  cur_priority_class = GetPriorityClass(GetCurrentProcess());
-        PRINT(("WASAPI: thread[ priority-0x%X class-0x%X ]\n", cur_priority, cur_priority_class));
+        PRINT((_T("WASAPI: thread[ priority-0x%X class-0x%X ]\n"), cur_priority, cur_priority_class));
     }
 
     (*ret) = hTask;
@@ -5106,7 +5111,7 @@ static void MMCSS_deactivate(HANDLE hTask)
 {
     if (pAvRevertMmThreadCharacteristics(hTask) == FALSE)
     {
-        PRINT(("WASAPI: AvRevertMmThreadCharacteristics failed!\n"));
+        PRINT((_T("WASAPI: AvRevertMmThreadCharacteristics failed!\n")));
     }
 }
 #endif
@@ -5803,7 +5808,7 @@ static BOOL PrepareComPointers(PaWasapiStream *stream, BOOL *threadComInitialize
     hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(hr) && (hr != RPC_E_CHANGED_MODE))
     {
-        PRINT(("WASAPI: failed ProcThreadEvent CoInitialize"));
+        PRINT((_T("WASAPI: failed ProcThreadEvent CoInitialize")));
         return FALSE;
     }
     if (hr != RPC_E_CHANGED_MODE)
@@ -5813,7 +5818,7 @@ static BOOL PrepareComPointers(PaWasapiStream *stream, BOOL *threadComInitialize
     hr = UnmarshalStreamComPointers(stream);
     if (hr != S_OK)
     {
-        PRINT(("WASAPI: Error unmarshaling stream COM pointers. HRESULT: %i\n", hr));
+        PRINT((_T("WASAPI: Error unmarshaling stream COM pointers. HRESULT: %i\n"), hr));
         CoUninitialize();
         return FALSE;
     }
@@ -5884,7 +5889,7 @@ PA_THREAD_FUNC ProcThreadEvent(void *param)
     }
     if ((stream->event[S_OUTPUT] == NULL) || (stream->event[S_INPUT] == NULL))
     {
-        PRINT(("WASAPI Thread: failed creating Input/Output event handle\n"));
+        PRINT((_T("WASAPI Thread: failed creating Input/Output event handle\n")));
         goto thread_error;
     }
 
@@ -5962,7 +5967,7 @@ PA_THREAD_FUNC ProcThreadEvent(void *param)
         switch (dwResult)
         {
         case WAIT_TIMEOUT: {
-            PRINT(("WASAPI Thread: WAIT_TIMEOUT - probably bad audio driver or Vista x64 bug: use paWinWasapiPolling instead\n"));
+            PRINT((_T("WASAPI Thread: WAIT_TIMEOUT - probably bad audio driver or Vista x64 bug: use paWinWasapiPolling instead\n")));
             goto thread_end;
             break; }
 
@@ -6041,7 +6046,7 @@ static UINT32 GetSleepTime(PaWasapiStream *stream, UINT32 sleepTimeIn, UINT32 sl
         if (chunks <= 2)
         {
             sleepTimeOut /= 2;
-            PRINT(("WASAPI: underrun workaround, sleep [%d] ms - 1/2 of the user buffer[%d] | host buffer[%d]\n", sleepTimeOut, userFramesOut, stream->out.framesPerHostCallback));
+            PRINT((_T("WASAPI: underrun workaround, sleep [%d] ms - 1/2 of the user buffer[%d] | host buffer[%d]\n"), sleepTimeOut, userFramesOut, stream->out.framesPerHostCallback));
         }
     }
 

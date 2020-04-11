@@ -1236,7 +1236,7 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
     (*hostApi)->info.structVersion = 1;
 
     (*hostApi)->info.type = paASIO;
-    (*hostApi)->info.name = "ASIO";
+    (*hostApi)->info.name = _T("ASIO");
     (*hostApi)->info.deviceCount = 0;
 
     #ifdef WINDOWS
