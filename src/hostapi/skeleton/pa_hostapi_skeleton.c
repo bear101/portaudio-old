@@ -147,7 +147,7 @@ PaError PaSkeleton_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiI
     *hostApi = &skeletonHostApi->inheritedHostApiRep;
     (*hostApi)->info.structVersion = 1;
     (*hostApi)->info.type = paInDevelopment;            /* IMPLEMENT ME: change to correct type id */
-    (*hostApi)->info.name = "skeleton implementation";  /* IMPLEMENT ME: change to correct name */
+    (*hostApi)->info.name = _T("skeleton implementation");  /* IMPLEMENT ME: change to correct name */
 
     (*hostApi)->info.defaultInputDevice = paNoDevice;  /* IMPLEMENT ME */
     (*hostApi)->info.defaultOutputDevice = paNoDevice; /* IMPLEMENT ME */
@@ -200,6 +200,9 @@ PaError PaSkeleton_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiI
             deviceInfo->defaultHighOutputLatency = 0.;  /* IMPLEMENT ME */  
 
             deviceInfo->defaultSampleRate = 0.; /* IMPLEMENT ME */
+
+            deviceInfo->uniqueID = 0;  //added by bdr
+            deviceInfo->wavedeviceid = -1; //added by bdr
             
             (*hostApi)->deviceInfos[i] = deviceInfo;
             ++(*hostApi)->info.deviceCount;
