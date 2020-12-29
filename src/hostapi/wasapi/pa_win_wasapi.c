@@ -6184,6 +6184,12 @@ PA_THREAD_FUNC ProcThreadPoll(void *param)
         }
     }
 
+    // Signal: stream running
+    stream->running = TRUE;
+
+    // Notify: thread started
+    SetEvent(stream->hThreadStart);
+
     // Initialize event & start OUTPUT stream
     if (stream->out.clientProc)
     {
@@ -6240,12 +6246,6 @@ PA_THREAD_FUNC ProcThreadPoll(void *param)
             goto thread_error;
         }
     }
-
-    // Signal: stream running
-    stream->running = TRUE;
-
-    // Notify: thread started
-    SetEvent(stream->hThreadStart);
 
     // Notify: state
     NotifyStateChanged(stream, paWasapiStreamStateThreadStart, ERROR_SUCCESS);
